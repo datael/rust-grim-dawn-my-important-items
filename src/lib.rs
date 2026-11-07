@@ -45,12 +45,12 @@ pub fn process(
     input: &mut impl Iterator<Item = Result<std::string::String, std::io::Error>>,
     output: &mut impl std::io::Write,
     config: &Config,
-    verbose: bool,
+    diffs_only: bool,
 ) -> Result<(), ProcessError> {
     for line in input {
         let line = line?;
         let line = line.as_str();
-        process_line(line, config, output, verbose)?;
+        process_line(line, config, output, diffs_only)?;
     }
 
     Ok(())
@@ -60,12 +60,16 @@ fn process_line(
     line: &str,
     config: &Config,
     output: &mut impl std::io::Write,
-    verbose: bool,
+    diffs_only: bool,
 ) -> Result<(), ProcessLineError> {
     macro_rules! as_is {
-        () => {
-            Ok(output.write_fmt(format_args!("{}\n", line)).map(|_| ())?)
-        };
+        () => {{
+            if !diffs_only {
+                output.write_fmt(format_args!("{}\n", line)).map(|_| ())?;
+            }
+
+            Ok(())
+        }};
     }
 
     if line.trim_start().starts_with('#') {
@@ -98,13 +102,13 @@ fn process_line(
         return as_is!();
     };
 
-    if verbose {
-        std::io::stderr()
-            .lock()
-            .write_fmt(format_args!("{prefix}={updated_name}\n"))?;
-    }
+    let rendered = format_args!("{prefix}={updated_name}\n");
 
-    output.write_fmt(format_args!("{prefix}={updated_name}\n"))?;
+    if diffs_only {
+        std::io::stderr().lock().write_fmt(rendered)?;
+    } else {
+        output.write_fmt(rendered)?;
+    }
 
     Ok(())
 }

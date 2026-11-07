@@ -20,7 +20,7 @@ for example "Append (C) to the beginning of the name of every item in this list"
 ## Limitations
 
 Since the item name and affixes, including level affixes like "Mythic" are separate
-localization entries, it's impossible to specify "only **Mythic*: Kymon's Badge".
+localization entries, it's impossible to specify "only \*Mythic\* Kymon's Badge".
 
 If sub-sections of a single item in the input file matches multiple item names,
 you'll get double replacements, so I hope you don't want a "Kymon's Badge of Ascendant Hood"!
@@ -31,14 +31,14 @@ you'll get double replacements, so I hope you don't want a "Kymon's Badge of Asc
 grim-dawn-important-items [OPTIONS] --config <CONFIG>
 
 Options:
-  -i, --input <INPUT>     Input file. Reads from stdin if unspecified.
-  -o, --output <OUTPUT>   Output file. Writes to stdout if unspecified.
-      --config <CONFIG>   Path to the config TOML file. Defaults to "config.toml"
-  -v, --verbose           Log a line to stderr for every change made.
-      --dry               Dry run: force output to be stdio even if an output is specified.
-  -h, --help              Print help.
-  -V, --version           Print version.
+  -i, --input <INPUT>    Input file. Reads from stdin if set to '-'
+      --config <CONFIG>  Path to the config TOML file [default: config.toml]
+  -d, --diffs            Diffs Only: only output changed lines
+  -h, --help             Print help
+  -V, --version          Print version
 ```
+
+Outputs to stdout, so use `>` to save the output to a file.
 
 ## Config file format
 
