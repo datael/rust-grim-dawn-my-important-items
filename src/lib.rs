@@ -89,7 +89,7 @@ fn process_line(
                 });
 
                 // Assuming an item isn't named doubly and that config is spelling out the entire name.
-                continue;
+                break;
             }
         }
     }
