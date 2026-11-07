@@ -2,7 +2,7 @@
 name = "grim-dawn-my-important-items"
 version = "0.1.0"
 edition = "2024"
-description = "Make configurable prefix/suffix adjustments to item names in a Grim Dawn language file. Use to make items you want to keep stand out."
+description = "Make the names of items you care about stand out in Grim Dawn. Apply prefix/suffix adjustments to item names in a Grim Dawn language file."
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

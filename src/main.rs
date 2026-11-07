@@ -1,5 +1,7 @@
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -12,9 +14,9 @@ use thiserror::Error;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Input file. Reads from stdin if unspecified.
+    /// Input file. Reads from stdin if set to '-'.
     #[arg(short, long)]
-    input: Option<PathBuf>,
+    input: PathBuf,
 
     /// Output file. Writes to stdout if unspecified.
     #[arg(short, long)]
@@ -28,7 +30,7 @@ struct Args {
     #[arg(short, long)]
     verbose: bool,
 
-    /// Dry run: force output to be stdio even if an output is specified.
+    /// Dry run: force output to be stdout even if an output is specified.
     #[arg(long)]
     dry: bool,
 }
@@ -61,11 +63,12 @@ fn run(args: &Args) -> Result<(), RuntimeError> {
     let config = toml::from_slice::<Config>(&config)
         .map_err(|e| RuntimeError::Toml(e, args.config.clone()))?;
 
-    let mut input = if let Some(path) = &args.input {
-        let file = File::open(path).map_err(|e| RuntimeError::FileIO(e, path.clone()))?;
-        Either::Left(BufReader::new(file).lines())
-    } else {
+    let mut input = if args.input.as_os_str() == OsStr::from_bytes(b"-") {
         Either::Right(std::io::stdin().lock().lines())
+    } else {
+        let file =
+            File::open(&args.input).map_err(|e| RuntimeError::FileIO(e, args.input.clone()))?;
+        Either::Left(BufReader::new(file).lines())
     };
 
     let mut output = if !args.dry
