@@ -2,6 +2,22 @@ use std::io::Write;
 
 use serde::Deserialize;
 
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum ProcessError {
+    #[error("I/O Error")]
+    IO(#[from] std::io::Error),
+    #[error("error in line processing")]
+    ProcessLine(#[from] ProcessLineError),
+}
+
+#[derive(Error, Debug)]
+pub enum ProcessLineError {
+    #[error("I/O Error")]
+    IO(#[from] std::io::Error),
+}
+
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct Category {
     /// The replacement template.
@@ -30,9 +46,9 @@ pub fn process(
     output: &mut impl std::io::Write,
     config: &Config,
     verbose: bool,
-) -> Result<(), String> {
+) -> Result<(), ProcessError> {
     for line in input {
-        let line = line.map_err(|e| format!("failed to read line: {e}"))?;
+        let line = line?;
         let line = line.as_str();
         process_line(line, config, output, verbose)?;
     }
@@ -45,13 +61,10 @@ fn process_line(
     config: &Config,
     output: &mut impl std::io::Write,
     verbose: bool,
-) -> Result<(), String> {
+) -> Result<(), ProcessLineError> {
     macro_rules! as_is {
         () => {
-            output
-                .write_fmt(format_args!("{}\n", line))
-                .map(|_| ())
-                .map_err(|e| format!("failed to write to output: {e}"))
+            Ok(output.write_fmt(format_args!("{}\n", line)).map(|_| ())?)
         };
     }
 
@@ -88,13 +101,10 @@ fn process_line(
     if verbose {
         std::io::stderr()
             .lock()
-            .write_fmt(format_args!("{prefix}={updated_name}\n"))
-            .map_err(|e| format!("failed to write verbose information to output: {e}"))?;
+            .write_fmt(format_args!("{prefix}={updated_name}\n"))?;
     }
 
-    output
-        .write_fmt(format_args!("{prefix}={updated_name}\n"))
-        .map_err(|e| format!("failed to write to output: {e}"))?;
+    output.write_fmt(format_args!("{prefix}={updated_name}\n"))?;
 
     Ok(())
 }

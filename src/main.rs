@@ -6,7 +6,8 @@ use std::process::ExitCode;
 use clap::Parser;
 use either::Either;
 
-use grim_dawn_my_important_items::{Config, process};
+use grim_dawn_my_important_items::{Config, ProcessError, process};
+use thiserror::Error;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -41,16 +42,27 @@ fn main() -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn run(args: &Args) -> Result<(), String> {
+#[derive(Error, Debug)]
+pub enum RuntimeError {
+    #[error("{0}")]
+    IO(#[from] std::io::Error),
+    #[error("{1}: {0}")]
+    FileIO(std::io::Error, PathBuf),
+    #[error("{1}: {0}")]
+    Toml(toml::de::Error, PathBuf),
+    #[error("process: {0}")]
+    Process(#[from] ProcessError),
+}
+
+fn run(args: &Args) -> Result<(), RuntimeError> {
     let config = std::fs::read(&args.config)
-        .map_err(|e| format!("error reading config at {}: {e}", args.config.display()))?;
+        .map_err(|e| RuntimeError::FileIO(e, args.config.to_path_buf()))?;
 
     let config = toml::from_slice::<Config>(&config)
-        .map_err(|e| format!("error parsing config at {}: {e}", args.config.display()))?;
+        .map_err(|e| RuntimeError::Toml(e, args.config.to_path_buf()))?;
 
     let mut input = if let Some(path) = &args.input {
-        let file = File::open(path)
-            .map_err(|e| format!("error opening file at {}: {e}", path.display()))?;
+        let file = File::open(path).map_err(|e| RuntimeError::FileIO(e, path.to_path_buf()))?;
         Either::Left(BufReader::new(file).lines())
     } else {
         Either::Right(std::io::stdin().lock().lines())
@@ -59,8 +71,7 @@ fn run(args: &Args) -> Result<(), String> {
     let mut output = if !args.dry
         && let Some(path) = &args.output
     {
-        let file = File::create(path)
-            .map_err(|e| format!("error creating file at {}: {e}", path.display()))?;
+        let file = File::create(path).map_err(|e| RuntimeError::FileIO(e, path.to_path_buf()))?;
         Either::Left(BufWriter::new(file))
     } else {
         Either::Right(std::io::stdout().lock())
@@ -68,9 +79,7 @@ fn run(args: &Args) -> Result<(), String> {
 
     process(&mut input, &mut output, &config, args.verbose)?;
 
-    output
-        .flush()
-        .map_err(|e| format!("error flushing output: {e}"))?;
+    output.flush().map_err(RuntimeError::IO)?;
 
     Ok(())
 }
