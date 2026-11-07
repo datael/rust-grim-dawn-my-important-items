@@ -1,0 +1,74 @@
+# MIs used in crafting
+# Source: https://forums.crateentertainment.com/t/list-of-mi-locations-updated-for-fangs-of-asterkarn/125553
+[[category]]
+label = "(C) %"
+item_names = [
+    "Ascended Casque",             # Mythical Dawnguard Helm
+    "Ascended Diadem",             # Unholy Visage of the Covenant
+    "Ascendant Hood",              # Stormherald's Visage, Mythical Cowl of the Paragon
+    "Ascendant Shoulderguards",    # Mythical Bounty Hunter's Shoulderguard
+    "Ascended Vestment",           # Callidor's Vestments
+    "Basilisk Mark",               # Mythical Wretched Tome of Nar'adin
+    "Bonescythe",                  # Damnation
+    "Bound Wraith",                # Mythical Wyrmbone Mask,Mythical Tainted Blade of Nera'Val
+    "Bloodsworn Codex",            # Empowered Black Grimoire of Og'Napesh
+    "Bloodsworn Repeater",         # Mythical Deathdealer's Sidearm, Arcanum Sigillis
+    "Coerced Wraith",              # Bysmiel's Mindweaver
+    "Colossal Fortress",           # Wrathguard
+    "Dermapteran Slicer",          # Mythical Duelist's Sabre
+    "Ellena's Necklace",           # Leviathan
+    "Enslaved Wraith",             # Stormbringer of Malmouth,Mythical Banshee's Misery
+    "Fleshwarped Bulwark",         # Mythical Zolhan's Revenge
+    "Fleshwarped Carbine",         # Mythical Vortex of Souls
+    "Fleshwarped Casque",          # Myrmidon Visor,Mythical Cowl of Mogdrogen
+    "Fleshwarped Codex",           # Mythical Spellgaze
+    "Fleshwarped Core",            # Mythical Wrathmourne
+    "Fleshwarped Incinerator",     # Cindercore
+    "Fleshwarped Shard",           # Blazerush
+    "Fleshwarped Tome",            # Mythical Necrolord's Gaze
+    "Galakros Dread Plating",      # Mythical Temporal Arcblade
+    "Galakros Singed Plating",     # Mythical Flame Keeper's Jacket,Mythical Doomforged Breastplate
+    "Gannar'vakkar's Sting",       # Word of Solael
+    "Ikrix Scale",                 # Empowered Skyshard Spellblade
+    "Incendiary Casque",           # Mask of Infernal Truth
+    "Incendiary Shoulderplates",   # Flame Keeper's Jacket
+    "Kilrian's Skullbreaker",      # Herald of Blazing Ends
+    "Leafmane Horn",               # Voice of Dreeg
+    "Living Ring",                 # Mythical Hellrune Carver
+    "Lunal'Valgoth's Waistguard",  # Rageflame Spellblade
+    "Milton's Casque",             # Mythical Myrmidon Visor
+    "Murderer's Cowl",             # Cowl of the Blind Assassin
+    "Murderer's Epaulets",         # Mythical Burrwitch Peacekeeper
+    "Mutant Bludgeon",             # Mythical Plaguebearer of Dreeg
+    "Obsidian Bulwark",            # Siegebreaker
+    "Obsidian War Cleaver",        # Mythical Stormreaver
+    "Overseer Eye",                # Eye of Dominion
+    "Packla's Skins",              # Dreadwalker Cowl
+    "Pulsing Shard",               # Empowered Spellfire Wand
+    "Rolderathis' Tome",           # Codex of Eternal Storms
+    "Rift Scourge Slicer",         # Shard of Asterkarn
+    "Rylok Mark",                  # Mythical Blood Orb of Ch'thon
+    "Salazar's Sovereign Blade",   # Sacrifice
+    "Scarab Carapace",             # Bysmiel's Grasp
+    "Servitor's Corruptor",        # Mythical Fang of Ch'thon
+    "Servitor's Slicer",           # Witch Moon,Mythical Doomsaw of Gluttony
+    "Spectral Arbalest",           # Ulda'Jax,Raka'Jax,Mythical Northern Wyrm
+    "Spectral Battle Axe",         # Mythical Crescent Moon
+    "Spectral Crown",              # Cowl of Mogdrogen
+    "Spectral Longsword",          # Haunt, Mythical Edge of Death
+    "Spectral War Shield",         # Mythical Lichguard
+    "Troll Bonecrusher",           # Mistborn Talisman
+    "Ugdenbog Bilelauncher",       # Venomlance
+    "Ugdenbog Flamestrife",        # Hexflame,Mythical Blessed Torch
+    "Ugdenbog Howler",             # Hex Launcher
+    "Ugdenbog Sparkthrower",       # The Desolator
+    "Ugdenbog Stormstrife",        # Gaze of Empyrion
+    "Ugdenbog Waistguard",         # Mythical Aldur's Inquisition
+    "Valaxteria's Arcane Robes",   # Mythical Callidor's Vestments
+    "Valaxteria's Skytorn Robes",  # Mythical Nighthunter's Chestguard
+    "Vine Ring",                   # Mythical Venomancer's Guile
+    "Wendigo Barb",                # Redeemer of Malmouth
+    "Wendigo Claw",                # Howl of the Wendigo, Claw of Hagaraz
+    "Wendigo Eye",                 # Cosmic Torrent
+    "Yeti Horn",                   # Olexra's Chill
+]

@@ -1,4 +1,4 @@
-# Grim Dawn My Important Items
+# Grim Dawn - My Important Items
 
 ## Why does this exist?
 

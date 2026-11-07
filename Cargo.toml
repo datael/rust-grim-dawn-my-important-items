@@ -1,0 +1,11 @@
+[package]
+name = "grim-dawn-my-important-items"
+version = "0.1.0"
+edition = "2024"
+description = "Make configurable prefix/suffix adjustments to item names in a Grim Dawn language file. Use to make items you want to keep stand out."
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+either = "1.19.0"
+serde = { version = "1", features = ["derive"] }
+toml = "=1.2.1+spec-1.1.0"
