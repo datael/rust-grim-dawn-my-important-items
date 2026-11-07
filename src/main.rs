@@ -55,14 +55,14 @@ pub enum RuntimeError {
 }
 
 fn run(args: &Args) -> Result<(), RuntimeError> {
-    let config = std::fs::read(&args.config)
-        .map_err(|e| RuntimeError::FileIO(e, args.config.to_path_buf()))?;
+    let config =
+        std::fs::read(&args.config).map_err(|e| RuntimeError::FileIO(e, args.config.clone()))?;
 
     let config = toml::from_slice::<Config>(&config)
-        .map_err(|e| RuntimeError::Toml(e, args.config.to_path_buf()))?;
+        .map_err(|e| RuntimeError::Toml(e, args.config.clone()))?;
 
     let mut input = if let Some(path) = &args.input {
-        let file = File::open(path).map_err(|e| RuntimeError::FileIO(e, path.to_path_buf()))?;
+        let file = File::open(path).map_err(|e| RuntimeError::FileIO(e, path.clone()))?;
         Either::Left(BufReader::new(file).lines())
     } else {
         Either::Right(std::io::stdin().lock().lines())
@@ -71,7 +71,7 @@ fn run(args: &Args) -> Result<(), RuntimeError> {
     let mut output = if !args.dry
         && let Some(path) = &args.output
     {
-        let file = File::create(path).map_err(|e| RuntimeError::FileIO(e, path.to_path_buf()))?;
+        let file = File::create(path).map_err(|e| RuntimeError::FileIO(e, path.clone()))?;
         Either::Left(BufWriter::new(file))
     } else {
         Either::Right(std::io::stdout().lock())

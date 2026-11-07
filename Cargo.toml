@@ -8,5 +8,5 @@ description = "Make configurable prefix/suffix adjustments to item names in a Gr
 clap = { version = "4", features = ["derive"] }
 either = "1.19.0"
 serde = { version = "1", features = ["derive"] }
-toml = "=1.2.1+spec-1.1.0"
+toml = "1.2.1"
 thiserror = "2.0"
