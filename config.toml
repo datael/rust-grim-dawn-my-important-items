@@ -1,7 +1,7 @@
 # MIs used in crafting
 # Source: https://forums.crateentertainment.com/t/list-of-mi-locations-updated-for-fangs-of-asterkarn/125553
 [[category]]
-label = "{^R}(C) "
+label = "{^R}(C) {^-}"
 style = "Prefix"
 item_names = [
     "Ascended Casque",             # Mythical Dawnguard Helm

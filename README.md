@@ -29,18 +29,12 @@ Thus, this tool was born.
 Since the item name and affixes, including level affixes like "Mythic" are separate
 localization entries, it's impossible to specify "only \*Mythic\* Kymon's Badge".
 
-To support interspersed colours and to make it easier to support custom-colouring
-the labels we apply here, this tool only support adding a Prefix or Suffix to items,
-and does not support wrapping an item name in a pattern.
-If you want to wrap the item name, define prefix and suffix categories with the same
-items listed in both.
-
 Items that have colour information in the MIDDLE of the name, e.g. "Kymon's{^L} Badge",
-aren't supported with Custom and only support Prefix and Suffix styles.
+aren't supported with `Custom` and only support `Prefix` and `Suffix` styles.
 The outputs from Grim Raynbow do not have items named like this,
 so this will only be a problem for highly customised setups.
 
-If you want a label to inherit the colour of the item, you must use Custom style.
+If you want a label to inherit the colour of the item, you must use the `Custom` style.
 Use "(C) %" to emulate Prefix, or "% (C)" to emulate Suffix.
 Remember that this mode does not support interspersed colours in the item name.
 
@@ -59,13 +53,13 @@ Options:
 
 All outputs go to stdout, so use `>` to save the output to a file:
 
-```
+```bash
 grim-dawn-important-items --input tagsgdx3_uimain.txt > tagsgdx3_uimain-mine.txt
 ```
 
 If you want to perform an in-place replacement, use the following:
 
-```
+```bash
 grim-dawn-important-items --input tagsgdx3_uimain.txt > tagsgdx3_uimain.out && mv tagsgdx3_uimain.out tagsgdx3_uimain.txt
 ```
 
@@ -75,7 +69,8 @@ actually long enough to warrant streaming.
 
 ## Config file format
 
-TOML.
+Use TOML formatting.
+
 You can define multiple `[[category]]` blocks.
 
 ```toml
@@ -115,6 +110,23 @@ item_names = [
   here.
     - Meta-information means is anything inside `{}` (colour information) and
     anything inside `()` (Grim Raynbow marks set items with `(S)`)
+
+
+### Config Tips
+
+If you set a colour via `label`, I recommend terminating it with `{^-}` to reset the colour.
+
+Grim Raynbow does not explicitly colour (all?) Epic (Blue) items, so any colour you set will leak into the item name.
+
+Don't do this:
+```toml
+label = "{^R}(C) "
+```
+
+Do this instead:
+```toml
+label = "{^R}(C) {^-}"
+```
 
 ### Multiple category matches
 
