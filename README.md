@@ -3,10 +3,10 @@
 ## What does it do?
 
 Allows you to specify simple replacement rules for Grim Dawn item names,
-for example "Append (C) to the beginning of the name of every item in this list".
+for example "Add the prefix '(C) ' to the item names in this list".
 
 Like a lot of players, I use [Grim Raynbow](https://grimraynbow.com/).
-I use this tool with the output from Grim Raynbow.
+I use this tool with the output from Grim Raynbow and test against that only.
 
 ## Why does this exist?
 
@@ -29,9 +29,20 @@ Thus, this tool was born.
 Since the item name and affixes, including level affixes like "Mythic" are separate
 localization entries, it's impossible to specify "only \*Mythic\* Kymon's Badge".
 
+To support interspersed colours and to make it easier to support custom-colouring
+the labels we apply here, this tool only support adding a Prefix or Suffix to items,
+and does not support wrapping an item name in a pattern.
+If you want to wrap the item name, define prefix and suffix categories with the same
+items listed in both.
+
 Items that have colour information in the MIDDLE of the name, e.g. "Kymon's{^L} Badge",
-aren't supported. The outputs from Grim Raynbow do not have items named like this,
+aren't supported with Custom and only support Prefix and Suffix styles.
+The outputs from Grim Raynbow do not have items named like this,
 so this will only be a problem for highly customised setups.
+
+If you want a label to inherit the colour of the item, you must use Custom style.
+Use "(C) %" to emulate Prefix, or "% (C)" to emulate Suffix.
+Remember that this mode does not support interspersed colours in the item name.
 
 ## Usage
 
@@ -69,32 +80,47 @@ You can define multiple `[[category]]` blocks.
 
 ```toml
 [[category]]
-label = "(C) %"
+label = "(C) "
+style = "Prefix"
 item_names = [
     "Ascendant Hood",
     "Ascendant Shoulderguards",
 ]
 
 [[category]]
-label = "% (B)"
+label = " (B)"
+style = "Suffix"
 item_names = [
     "Kymon's Badge",
 ]
 
+[[category]]
+label = "[%]"
+style = "Custom"
+item_names = [
+    "Ellena's Necklace",
+]
 ```
 
-- `label` is a replacement template. The token `%` is replaced with the matched
-  item name. If label contains no `%`, the original name is dropped entirely and
-  `label` is used verbatim.
-- `item_names` is a list of names to match. Matching is a **substring** test
-  against the part of the line **after the first `=`** (so the `tag...=` key is
-  preserved untouched).
+- The combination of `label` and `style` determines what gets inserted.
+    - In `Prefix` style, the label is inserted at the start of the item name,
+      **before** colour information, so it does not inherit the item's colour.
+    - In `Suffix` style, the label is inserted at the end of the item name,
+      which is **after** colour information, so it inherits the item's colour.
+    - In `Custom` style, the token `%` is replaced with the matched item name.
+      If `label` contains no `%`, the original name is dropped entirely and
+      `label` is used verbatim.
+- `item_names` is a list of names to match. The part of the line **after the first `=`**
+  is stripped of meta-information, and then compared to the item name specified
+  here.
+    - Meta-information means is anything inside `{}` (colour information) and
+    anything inside `()` (Grim Raynbow marks set items with `(S)`)
 
 ### Multiple category matches
 
 If more than one category matches, the labels are applied in order by replacing
 the original item name in the string with the new category.
-If you're only doing prefixes, they appear in definition order.
+If you're only doing `Prefix`es, they appear in the opposite to definition order.
 If you're mixing and they all match the same item it will appear pretty random,
 but it is consistent.
 
@@ -102,13 +128,15 @@ Given:
 
 ```toml
 [[category]]
-label = "(C) %"
+label = "(C) "
+style = "Prefix"
 item_names = [
     "Kymon's Badge",
 ]
 
 [[category]]
-label = "(B) %"
+label = "(B) "
+style = "Prefix"
 item_names = [
     "Kymon's Badge",
 ]
@@ -117,5 +145,5 @@ item_names = [
 the line `tagMedalB004={^L}Kymon's Badge` becomes
 
 ```
-tagMedalB004={^L}(C) (B) Kymon's Badge
+tagMedalB004=(B) (C) {^L}Kymon's Badge
 ```
