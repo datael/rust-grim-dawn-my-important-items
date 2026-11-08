@@ -67,7 +67,7 @@ fn strip_metadata_from_name(original_item_name: &str) -> String {
 
     // It's technically possible to avoid allocations,
     // but it's a lot of extra (30 or so lines) for not much gain.
-    return trimmed_stripped_item_name.to_string();
+    trimmed_stripped_item_name.to_string()
 }
 
 pub fn process(
@@ -177,10 +177,13 @@ pub fn validate(
         return Ok(());
     }
 
-    output.write(b"configured items not found in input:\n")?;
-    for item_name in not_yet_found_item_names.into_iter() {
-        output.write(item_name.as_bytes())?;
-        output.write(b"\n")?;
+    output
+        .write(b"configured items not found in input:\n")
+        .map(|_| ())?;
+
+    for item_name in not_yet_found_item_names {
+        output.write(item_name.as_bytes()).map(|_| ())?;
+        output.write(b"\n").map(|_| ())?;
     }
 
     Ok(())
