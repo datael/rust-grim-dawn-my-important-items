@@ -1,4 +1,4 @@
-use std::{io::Write, sync::OnceLock};
+use std::sync::OnceLock;
 
 use regex::Regex;
 use serde::Deserialize;
