@@ -62,6 +62,11 @@ fn process_line(
     output: &mut impl std::io::Write,
     diffs_only: bool,
 ) -> Result<(), ProcessLineError> {
+    static STRIP_METADATA_FROM_NAME: OnceLock<Regex> = OnceLock::new();
+    let strip_metadata_from_name = STRIP_METADATA_FROM_NAME.get_or_init(|| {
+        Regex::new(r"\{[^}]*\}|\([^)]*\)").expect("not runtime generated; should compile")
+    });
+
     macro_rules! as_is {
         () => {{
             if !diffs_only {
@@ -79,11 +84,6 @@ fn process_line(
     let Some((prefix, original_item_name)) = line.split_once('=') else {
         return as_is!();
     };
-
-    static STRIP_METADATA_FROM_NAME: OnceLock<Regex> = OnceLock::new();
-    let strip_metadata_from_name = STRIP_METADATA_FROM_NAME.get_or_init(|| {
-        Regex::new(r"\{[^}]*\}|\([^)]*\)").expect("not runtime generated; should compile")
-    });
 
     let stripped_item_name = strip_metadata_from_name.replace_all(original_item_name, "");
     let stripped_item_name = stripped_item_name.trim();
