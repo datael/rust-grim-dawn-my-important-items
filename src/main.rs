@@ -6,10 +6,18 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::Parser;
+use clap::ValueEnum;
 use either::Either;
 
-use grim_dawn_my_important_items::{Config, ProcessError, process};
+use grim_dawn_my_important_items::{Config, ProcessError, ValidateError, process, validate};
 use thiserror::Error;
+
+#[derive(Debug, Clone, ValueEnum, PartialEq, Eq)]
+pub enum Mode {
+    Standard,
+    Diffs,
+    Validate,
+}
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -22,9 +30,11 @@ struct Args {
     #[arg(long, default_value = "config.toml")]
     config: PathBuf,
 
-    /// Diffs Only: only output changed lines.
-    #[arg(short, long = "diffs")]
-    diffs_only: bool,
+    /// Mode: one of Standard, Diffs, or Validate.
+    /// Diffs only outputs changes lines.
+    /// Validate only validates that items in config appear in the input.
+    #[arg(short, long, default_value = "standard")]
+    mode: Mode,
 }
 
 fn main() -> ExitCode {
@@ -46,6 +56,8 @@ pub enum RuntimeError {
     Toml(toml::de::Error, PathBuf),
     #[error("process: {0}")]
     Process(#[from] ProcessError),
+    #[error("validate: {0}")]
+    Validate(#[from] ValidateError),
 }
 
 fn run(args: &Args) -> Result<(), RuntimeError> {
@@ -65,7 +77,11 @@ fn run(args: &Args) -> Result<(), RuntimeError> {
 
     let mut output = std::io::stdout().lock();
 
-    process(&mut input, &mut output, &config, args.diffs_only)?;
+    if args.mode == Mode::Validate {
+        validate(&mut input, &mut output, &config)?;
+    } else {
+        process(&mut input, &mut output, &config, args.mode == Mode::Diffs)?;
+    }
 
     output.flush().map_err(RuntimeError::IO)?;
 
