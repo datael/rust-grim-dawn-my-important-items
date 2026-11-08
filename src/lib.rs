@@ -268,4 +268,50 @@ mod tests {
             assert_eq!(test_process(input, &config, true), expected);
         }
     }
+
+    #[test]
+    fn multiple_target_item_names_are_supported() {
+        let config = single_category_config("%!", ["A", "B"]);
+
+        for (input, expected) in [
+            (&["b=B"][..], &["b=B!"][..]),
+            (&["a=A", "b=B", "c=A"], &["a=A!", "b=B!", "c=A!"]),
+            (&["a=A", "b=B", "c=C"], &["a=A!", "b=B!", "c=C"]),
+            (
+                &["a=A", "b=B", "c=C", "ab=AB"],
+                &["a=A!", "b=B!", "c=C", "ab=AB"],
+            ),
+        ] {
+            assert_eq!(test_process(input, &config, false), expected);
+        }
+    }
+
+    #[test]
+    fn multiple_categories_are_supported() {
+        let config = Config {
+            categories: vec![
+                category("(C) %", ["Ellena's Necklace", "Living Ring"]),
+                category("(B) %", ["Ellena's Necklace"]),
+            ],
+        };
+
+        for (input, expected) in [
+            (
+                &["tagGDX1RingB101={^L}Living Ring"][..],
+                &["tagGDX1RingB101={^L}(C) Living Ring"][..],
+            ),
+            (
+                &[
+                    "tagNecklaceB003={^L}Ellena's Necklace",
+                    "tagGDX1RingB101={^L}Living Ring",
+                ],
+                &[
+                    "tagNecklaceB003={^L}(C) (B) Ellena's Necklace",
+                    "tagGDX1RingB101={^L}(C) Living Ring",
+                ],
+            ),
+        ] {
+            assert_eq!(test_process(input, &config, false), expected);
+        }
+    }
 }
