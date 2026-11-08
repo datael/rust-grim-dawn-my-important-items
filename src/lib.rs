@@ -112,11 +112,7 @@ fn process_line(
 
     let rendered = format_args!("{prefix}={updated_name}\n");
 
-    if diffs_only {
-        std::io::stderr().lock().write_fmt(rendered)?;
-    } else {
-        output.write_fmt(rendered)?;
-    }
+    output.write_fmt(rendered)?;
 
     Ok(())
 }
@@ -258,6 +254,18 @@ mod tests {
             ),
         ] {
             assert_eq!(test_process(input, &config, false), expected);
+        }
+    }
+
+    #[test]
+    fn diff_mode_outputs_diffs_only() {
+        let config = single_category_config("%!", ["A"]);
+
+        for (input, expected) in [
+            (&["b=B"][..], &[][..]),
+            (&["a=A", "b=B", "c=A"], &["a=A!", "c=A!"]),
+        ] {
+            assert_eq!(test_process(input, &config, true), expected);
         }
     }
 }
