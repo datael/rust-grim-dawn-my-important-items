@@ -1,7 +1,5 @@
-use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -67,7 +65,7 @@ fn run(args: &Args) -> Result<(), RuntimeError> {
     let config = toml::from_slice::<Config>(&config)
         .map_err(|e| RuntimeError::Toml(e, args.config.clone()))?;
 
-    let mut input = if args.input.as_os_str() == OsStr::from_bytes(b"-") {
+    let mut input = if args.input.as_os_str() == "-" {
         Either::Right(std::io::stdin().lock().lines())
     } else {
         let file =
