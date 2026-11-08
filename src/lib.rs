@@ -22,6 +22,7 @@ pub enum ProcessLineError {
 pub enum Style {
     Prefix,
     Suffix,
+    Custom,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
@@ -114,6 +115,14 @@ fn process_line(
                         Some(new_name) => format!("{new_name}{label}"),
                         None => format!("{original_item_name}{label}"),
                     },
+                    Style::Custom => {
+                        let replace_with = &category.label.replace('%', category_item_name);
+
+                        match new_name {
+                            Some(new_name) => new_name.replace(category_item_name, replace_with),
+                            None => original_item_name.replace(category_item_name, replace_with),
+                        }
+                    }
                 });
 
                 break;
@@ -348,6 +357,18 @@ mod tests {
         for (input, expected) in [(
             &["tagNecklaceB003={^L}Ellena's Necklace"],
             &["tagNecklaceB003=[{^L}Ellena's Necklace]"],
+        )] {
+            assert_eq!(test_process(input, &config, false), expected);
+        }
+    }
+
+    #[test]
+    fn custom_replaces_the_item_name_only() {
+        let config = single_category_config("[%]", Style::Custom, ["Ellena's Necklace"]);
+
+        for (input, expected) in [(
+            &["tagNecklaceB003={^L}Ellena's Necklace"],
+            &["tagNecklaceB003={^L}[Ellena's Necklace]"],
         )] {
             assert_eq!(test_process(input, &config, false), expected);
         }
