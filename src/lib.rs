@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::OnceLock;
 
 use regex::Regex;
@@ -14,6 +15,12 @@ pub enum ProcessError {
 
 #[derive(Error, Debug)]
 pub enum ProcessLineError {
+    #[error("I/O Error")]
+    IO(#[from] std::io::Error),
+}
+
+#[derive(Error, Debug)]
+pub enum ValidateError {
     #[error("I/O Error")]
     IO(#[from] std::io::Error),
 }
@@ -49,6 +56,20 @@ pub struct Config {
     pub categories: Vec<Category>,
 }
 
+static STRIP_METADATA_FROM_NAME: OnceLock<Regex> = OnceLock::new();
+fn strip_metadata_from_name(original_item_name: &str) -> String {
+    let strip_metadata_from_name = STRIP_METADATA_FROM_NAME.get_or_init(|| {
+        Regex::new(r"\{[^}]*\}|\([^)]*\)").expect("not runtime generated; should compile")
+    });
+
+    let stripped_item_name = strip_metadata_from_name.replace_all(original_item_name, "");
+    let trimmed_stripped_item_name = stripped_item_name.trim();
+
+    // It's technically possible to avoid allocations,
+    // but it's a lot of extra (30 or so lines) for not much gain.
+    return trimmed_stripped_item_name.to_string();
+}
+
 pub fn process(
     input: &mut impl Iterator<Item = Result<std::string::String, std::io::Error>>,
     output: &mut impl std::io::Write,
@@ -70,11 +91,6 @@ fn process_line(
     output: &mut impl std::io::Write,
     diffs_only: bool,
 ) -> Result<(), ProcessLineError> {
-    static STRIP_METADATA_FROM_NAME: OnceLock<Regex> = OnceLock::new();
-    let strip_metadata_from_name = STRIP_METADATA_FROM_NAME.get_or_init(|| {
-        Regex::new(r"\{[^}]*\}|\([^)]*\)").expect("not runtime generated; should compile")
-    });
-
     macro_rules! as_is {
         () => {{
             if !diffs_only {
@@ -93,8 +109,7 @@ fn process_line(
         return as_is!();
     };
 
-    let stripped_item_name = strip_metadata_from_name.replace_all(original_item_name, "");
-    let stripped_item_name = stripped_item_name.trim();
+    let stripped_item_name = strip_metadata_from_name(original_item_name);
 
     let mut new_name: Option<String> = None;
 
@@ -139,6 +154,49 @@ fn process_line(
     output.write_fmt(rendered)?;
 
     Ok(())
+}
+
+pub fn validate(
+    input: &mut impl Iterator<Item = Result<std::string::String, std::io::Error>>,
+    output: &mut impl std::io::Write,
+    config: &Config,
+) -> Result<(), ValidateError> {
+    let mut not_yet_found_item_names = config
+        .categories
+        .iter()
+        .flat_map(|category| category.item_names.iter().map(String::as_str))
+        .collect::<HashSet<_>>();
+
+    for line in input {
+        let line = line?;
+        let line = line.as_str();
+        validate_by_line(line, &mut not_yet_found_item_names);
+    }
+
+    if not_yet_found_item_names.is_empty() {
+        return Ok(());
+    }
+
+    output.write(b"configured items not found in input:\n")?;
+    for item_name in not_yet_found_item_names.into_iter() {
+        output.write(item_name.as_bytes())?;
+        output.write(b"\n")?;
+    }
+
+    Ok(())
+}
+
+fn validate_by_line(line: &str, not_yet_found_item_names: &mut HashSet<&str>) {
+    if line.trim_start().starts_with('#') {
+        return;
+    }
+
+    let Some((_, original_item_name)) = line.split_once('=') else {
+        return;
+    };
+
+    let stripped_item_name = strip_metadata_from_name(original_item_name);
+    not_yet_found_item_names.remove(stripped_item_name.as_str());
 }
 
 #[cfg(test)]
