@@ -19,13 +19,20 @@ pub enum ProcessLineError {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+pub enum Style {
+    Prefix,
+    Suffix,
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct Category {
-    /// The replacement template.
+    /// Label to insert.
     ///
-    /// The token `%` is replaced with the matched item name (or the current
-    /// value, when several categories match the same line). If `%` is absent
-    /// the original name is dropped and the template is used verbatim.
+    /// If you want whitespace, include it here.
     pub label: String,
+
+    /// How the label is inserted.
+    pub style: Style,
 
     /// Item names to match. Matching is a substring test against the portion of
     /// the line after the first `=`.
@@ -91,16 +98,24 @@ fn process_line(
     let mut new_name: Option<String> = None;
 
     for category in config.categories.iter() {
+        let label = &category.label;
+        if label.is_empty() {
+            continue;
+        }
+
         for category_item_name in category.item_names.iter() {
             if stripped_item_name.eq(category_item_name) {
-                let replace_with = &category.label.replace('%', category_item_name);
-
-                new_name = Some(match new_name {
-                    Some(new_name) => new_name.replace(category_item_name, replace_with),
-                    None => original_item_name.replace(category_item_name, replace_with),
+                new_name = Some(match category.style {
+                    Style::Prefix => match new_name {
+                        Some(new_name) => format!("{label}{new_name}"),
+                        None => format!("{label}{original_item_name}"),
+                    },
+                    Style::Suffix => match new_name {
+                        Some(new_name) => format!("{new_name}{label}"),
+                        None => format!("{original_item_name}{label}"),
+                    },
                 });
 
-                // Assuming an item isn't named doubly and that config is spelling out the entire name.
                 break;
             }
         }
@@ -121,9 +136,10 @@ fn process_line(
 mod tests {
     use super::*;
 
-    fn category<const N: usize>(label: &str, item_names: [&str; N]) -> Category {
+    fn category<const N: usize>(label: &str, style: Style, item_names: [&str; N]) -> Category {
         Category {
             label: label.into(),
+            style,
             item_names: item_names
                 .iter()
                 .map(|item_name| item_name.to_string())
@@ -131,9 +147,13 @@ mod tests {
         }
     }
 
-    fn single_category_config<const N: usize>(label: &str, item_names: [&str; N]) -> Config {
+    fn single_category_config<const N: usize>(
+        label: &str,
+        style: Style,
+        item_names: [&str; N],
+    ) -> Config {
         Config {
-            categories: vec![category(label, item_names)],
+            categories: vec![category(label, style, item_names)],
         }
     }
 
@@ -168,7 +188,7 @@ mod tests {
 
     #[test]
     fn lines_without_matches_are_unchanged() {
-        let config = single_category_config("%!", ["A"]);
+        let config = single_category_config("!", Style::Suffix, ["A"]);
 
         for (input, expected) in [
             (&[][..], &[][..]), // Annoyingly, the [..] is required to force these to be inferred to be slices so that we can have multiple lenghts of input
@@ -189,7 +209,7 @@ mod tests {
 
     #[test]
     fn matches_before_eqals_sign_are_ignored() {
-        let config = single_category_config("%!", ["A"]);
+        let config = single_category_config("!", Style::Suffix, ["A"]);
 
         for (input, expected) in [
             (&["A"][..], &["A"][..]),
@@ -202,25 +222,25 @@ mod tests {
 
     #[test]
     fn meta_information_is_not_affected() {
-        let config = single_category_config("(C) %", ["Spectral Arbalest"]);
+        let config = single_category_config("(C) ", Style::Prefix, ["Spectral Arbalest"]);
 
         for (input, expected) in [
             (&["a=Spectral Arbalest"], &["a=(C) Spectral Arbalest"]),
             (
                 &["a={^L}Spectral Arbalest"],
-                &["a={^L}(C) Spectral Arbalest"],
+                &["a=(C) {^L}Spectral Arbalest"],
             ),
             (
                 &["a=(S) Spectral Arbalest"],
-                &["a=(S) (C) Spectral Arbalest"],
+                &["a=(C) (S) Spectral Arbalest"],
             ),
             (
                 &["a={^L}(S) Spectral Arbalest"],
-                &["a={^L}(S) (C) Spectral Arbalest"],
+                &["a=(C) {^L}(S) Spectral Arbalest"],
             ),
             (
                 &["a={^L}Spectral Arbalest (S)"],
-                &["a={^L}(C) Spectral Arbalest (S)"],
+                &["a=(C) {^L}Spectral Arbalest (S)"],
             ),
         ] {
             assert_eq!(test_process(input, &config, false), expected);
@@ -229,7 +249,7 @@ mod tests {
 
     #[test]
     fn matches_that_arent_the_full_name_are_ignored() {
-        let config = single_category_config("%!", ["A"]);
+        let config = single_category_config("!", Style::Suffix, ["A"]);
 
         for (input, expected) in [
             (&["a="], &["a="]),
@@ -241,16 +261,17 @@ mod tests {
     }
 
     #[test]
-    fn meta_information_interspersed_means_item_is_skipped() {
-        // I'd like to support this eventually, but it's a lot of parsing.
-
-        let config = single_category_config("(C) %", ["Spectral Arbalest"]);
+    fn meta_information_interspersed_is_supported() {
+        let config = single_category_config("(C) ", Style::Prefix, ["Spectral Arbalest"]);
 
         for (input, expected) in [
-            (&["a=Spectral{^L} Arbalest"], &["a=Spectral{^L} Arbalest"]),
+            (
+                &["a=Spectral{^L} Arbalest"],
+                &["a=(C) Spectral{^L} Arbalest"],
+            ),
             (
                 &["a=(S) Spectral{^L} Arbalest"],
-                &["a=(S) Spectral{^L} Arbalest"],
+                &["a=(C) (S) Spectral{^L} Arbalest"],
             ),
         ] {
             assert_eq!(test_process(input, &config, false), expected);
@@ -259,7 +280,7 @@ mod tests {
 
     #[test]
     fn diff_mode_outputs_diffs_only() {
-        let config = single_category_config("%!", ["A"]);
+        let config = single_category_config("!", Style::Suffix, ["A"]);
 
         for (input, expected) in [
             (&["b=B"][..], &[][..]),
@@ -271,7 +292,7 @@ mod tests {
 
     #[test]
     fn multiple_target_item_names_are_supported() {
-        let config = single_category_config("%!", ["A", "B"]);
+        let config = single_category_config("!", Style::Suffix, ["A", "B"]);
 
         for (input, expected) in [
             (&["b=B"][..], &["b=B!"][..]),
@@ -290,15 +311,15 @@ mod tests {
     fn multiple_categories_are_supported() {
         let config = Config {
             categories: vec![
-                category("(C) %", ["Ellena's Necklace", "Living Ring"]),
-                category("(B) %", ["Ellena's Necklace"]),
+                category("(C) ", Style::Prefix, ["Ellena's Necklace", "Living Ring"]),
+                category("(B) ", Style::Prefix, ["Ellena's Necklace"]),
             ],
         };
 
         for (input, expected) in [
             (
                 &["tagGDX1RingB101={^L}Living Ring"][..],
-                &["tagGDX1RingB101={^L}(C) Living Ring"][..],
+                &["tagGDX1RingB101=(C) {^L}Living Ring"][..],
             ),
             (
                 &[
@@ -306,11 +327,28 @@ mod tests {
                     "tagGDX1RingB101={^L}Living Ring",
                 ],
                 &[
-                    "tagNecklaceB003={^L}(C) (B) Ellena's Necklace",
-                    "tagGDX1RingB101={^L}(C) Living Ring",
+                    "tagNecklaceB003=(B) (C) {^L}Ellena's Necklace",
+                    "tagGDX1RingB101=(C) {^L}Living Ring",
                 ],
             ),
         ] {
+            assert_eq!(test_process(input, &config, false), expected);
+        }
+    }
+
+    #[test]
+    fn wrapping_is_supported_by_using_two_categories() {
+        let config = Config {
+            categories: vec![
+                category("[", Style::Prefix, ["Ellena's Necklace"]),
+                category("]", Style::Suffix, ["Ellena's Necklace"]),
+            ],
+        };
+
+        for (input, expected) in [(
+            &["tagNecklaceB003={^L}Ellena's Necklace"],
+            &["tagNecklaceB003=[{^L}Ellena's Necklace]"],
+        )] {
             assert_eq!(test_process(input, &config, false), expected);
         }
     }
