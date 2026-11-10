@@ -34,9 +34,9 @@ aren't supported with `Custom` and only support `Prefix` and `Suffix` styles.
 The outputs from Grim Raynbow do not have items named like this,
 so this will only be a problem for highly customised setups.
 
-If you want a label to inherit the colour of the item, you must use the `Custom` style.
-Use "(C) %" to emulate Prefix, or "% (C)" to emulate Suffix.
-Remember that this mode does not support interspersed colours in the item name.
+If you want a label to inherit the colour of the item you can either use `Suffix` or
+the `Custom` style. You can use "(C) %" to emulate `Prefix` with the `Custom` style.
+Remember that `Custom` style does not support interspersed colours in the item name.
 
 ## Usage
 
@@ -61,6 +61,12 @@ If you want to perform an in-place replacement, use the following:
 
 ```bash
 grim-dawn-important-items --input tagsgdx3_uimain.txt > tagsgdx3_uimain.out && mv tagsgdx3_uimain.out tagsgdx3_uimain.txt
+```
+
+To run directly from source, replace `grim-dawn-important-items` above with `cargo run --release --`:
+
+```bash
+cargo run --release -- --input tagsgdx3_uimain.txt > tagsgdx3_uimain-mine.txt
 ```
 
 The input is streamed, so you can't directly overwrite the input file.
@@ -116,7 +122,8 @@ item_names = [
 
 If you set a colour via `label`, I recommend terminating it with `{^-}` to reset the colour.
 
-Grim Raynbow does not explicitly colour (all?) Epic (Blue) items, so any colour you set will leak into the item name.
+Grim Raynbow does not explicitly colour (all?) Epic (Blue) items,
+so a `Prefix` can leak any colour you set into the item name.
 
 Don't do this:
 ```toml
@@ -127,6 +134,16 @@ Do this instead:
 ```toml
 label = "{^R}(C) {^-}"
 ```
+
+#### Awakenable Epic items don't work
+
+Grim Raynbow omits Awakenable Epic items in the default config.
+You can confirm this with `--mode validate`: it will log all
+Awakenable Epic items if you use Grim Raynbow's default settings.
+
+On the Grim Raynbow site, under Modules::Specials you'll find Block::Awakenable.
+Set this to `Blue {^B}` to force it to include Awakenable Epics in the ouput.
+Confirm with `--mode validate` that items are no longer logged.
 
 ### Multiple category matches
 
