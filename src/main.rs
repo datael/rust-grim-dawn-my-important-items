@@ -75,13 +75,14 @@ fn run(args: &Args) -> Result<(), RuntimeError> {
 
     let mut output = std::io::stdout().lock();
 
-    if args.mode == Mode::Validate {
-        validate(&mut input, &mut output, &config)?;
+    let result = if args.mode == Mode::Validate {
+        validate(&mut input, &mut output, &config).map_err(RuntimeError::Validate)
     } else {
-        process(&mut input, &mut output, &config, args.mode == Mode::Diffs)?;
-    }
+        process(&mut input, &mut output, &config, args.mode == Mode::Diffs)
+            .map_err(RuntimeError::Process)
+    };
 
-    output.flush().map_err(RuntimeError::IO)?;
+    let flush_result = output.flush().map_err(RuntimeError::IO);
 
-    Ok(())
+    result.and(flush_result)
 }
