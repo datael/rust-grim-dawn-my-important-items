@@ -63,15 +63,15 @@ If you want to perform an in-place replacement, use the following:
 grim-dawn-important-items --input tagsgdx3_uimain.txt > tagsgdx3_uimain.out && mv tagsgdx3_uimain.out tagsgdx3_uimain.txt
 ```
 
+The input is streamed, so you can't directly overwrite the input file.
+I'll probably change this eventually, because the language files aren't
+actually long enough to warrant streaming.
+
 To run directly from source, replace `grim-dawn-important-items` above with `cargo run --release --`:
 
 ```bash
 cargo run --release -- --input tagsgdx3_uimain.txt > tagsgdx3_uimain-mine.txt
 ```
-
-The input is streamed, so you can't directly overwrite the input file.
-I'll probably change this eventually, because the language files aren't
-actually long enough to warrant streaming.
 
 ## Config file format
 
