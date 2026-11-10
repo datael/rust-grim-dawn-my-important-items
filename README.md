@@ -73,6 +73,9 @@ To run directly from source, replace `grim-dawn-important-items` above with `car
 cargo run --release -- --input tagsgdx3_uimain.txt > tagsgdx3_uimain-mine.txt
 ```
 
+Note the extra `--` in this command. This is how cargo knows to pass the
+remaining arguments to the resulting executable instead of try to use them itself.
+
 ## Config file format
 
 Use TOML formatting.
@@ -81,23 +84,23 @@ You can define multiple `[[category]]` blocks.
 
 ```toml
 [[category]]
-label = "(C) "
 style = "Prefix"
+label = "(C) "
 item_names = [
     "Ascendant Hood",
     "Ascendant Shoulderguards",
 ]
 
 [[category]]
-label = " (B)"
 style = "Suffix"
+label = " (B)"
 item_names = [
     "Kymon's Badge",
 ]
 
 [[category]]
-label = "[%]"
 style = "Custom"
+label = "[%]"
 item_names = [
     "Ellena's Necklace",
 ]
@@ -157,15 +160,15 @@ Given:
 
 ```toml
 [[category]]
-label = "(C) "
 style = "Prefix"
+label = "(C) "
 item_names = [
     "Kymon's Badge",
 ]
 
 [[category]]
-label = "(B) "
 style = "Prefix"
+label = "(B) "
 item_names = [
     "Kymon's Badge",
 ]
