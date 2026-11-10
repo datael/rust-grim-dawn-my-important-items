@@ -34,13 +34,13 @@ pub enum Style {
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct Category {
+    /// How the label is inserted.
+    pub style: Style,
+
     /// Label to insert.
     ///
     /// If you want whitespace, include it here.
     pub label: String,
-
-    /// How the label is inserted.
-    pub style: Style,
 
     /// Item names to match. Matching is a substring test against the portion of
     /// the line after the first `=`.
@@ -209,8 +209,8 @@ mod tests {
 
     fn category<const N: usize>(label: &str, style: Style, item_names: [&str; N]) -> Category {
         Category {
-            label: label.into(),
             style,
+            label: label.into(),
             item_names: item_names
                 .iter()
                 .map(|item_name| item_name.to_string())
