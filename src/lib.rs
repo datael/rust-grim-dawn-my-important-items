@@ -65,8 +65,9 @@ fn strip_metadata_from_name(original_item_name: &str) -> String {
     let stripped_item_name = strip_metadata_from_name.replace_all(original_item_name, "");
     let trimmed_stripped_item_name = stripped_item_name.trim();
 
-    // It's technically possible to avoid allocations,
-    // but it's a lot of extra (30 or so lines) for not much gain.
+    // It's technically possible to avoid allocations in the common case
+    // where the item name does not have interspersed metadata,
+    // but it's a lot of extra code (30 or so lines) for not much gain.
     trimmed_stripped_item_name.to_string()
 }
 
